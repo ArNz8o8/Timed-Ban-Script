@@ -2,12 +2,12 @@
 #  Timed ban with a change to escape it by guessing the right code phrase
 #
 #  To start the timed ban a user must type:
-#    !bban <nickname>
+#    !troll <nickname>
 #  Diffusing the bomb is done by typing:
 #    !code <codephrase>
 #
 #  The codes you can choose from are displayed when the ban is activated.
-#  This script will not allow bots (Users who are +b), or the bot running the
+#  This script will not allow friend (Users who are +g), or the bot running the
 #  script, to be banned.
 #
 #  (C) 2016 ArNz|8o8 - Based on timebomb.tcl by http://radiosaurus.sporkism.org
