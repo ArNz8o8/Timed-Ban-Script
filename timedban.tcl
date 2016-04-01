@@ -16,8 +16,8 @@
 ###############################################################################
 
 
-bind pub - !troll doCodeBan
-bind pub - !code doCrackCode
+bind pub o !troll doCodeBan
+bind pub o !code doCrackCode
 
 # Configuration
 #
