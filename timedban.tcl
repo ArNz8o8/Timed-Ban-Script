@@ -7,8 +7,8 @@
 #    !code <codephrase>
 #
 #  The codes you can choose from are displayed when the ban is activated.
-#  This script will not allow friend (Users who are +g), or the bot running the
-#  script, to be banned.
+#  This script will not allow the owner, or friends (Users who are +g), or
+#  the bot running the script, to be banned.
 #
 #  (C) 2016 ArNz|8o8 - Based on timebomb.tcl by http://radiosaurus.sporkism.org
 #  Made for eggdrops 1.6.x and up
