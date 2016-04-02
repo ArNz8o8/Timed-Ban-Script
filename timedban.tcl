@@ -7,31 +7,38 @@
 #    !code <codephrase>
 #
 #  The codes you can choose from are displayed when the ban is activated.
-#  This script will not allow the owner, or friends (Users who are +g), or
-#  the bot running the script, to be banned.
+#  This script will not allow bots (Users who are +b), or the bot running the
+#  script, to be banned.
 #
 #  (C) 2016 ArNz|8o8 - Based on timebomb.tcl by http://radiosaurus.sporkism.org
 #  Made for eggdrops 1.6.x and up
 #
+#  Version 1.2beta - Changed the banmask and added a ban duration
+#                    Ban duration is set at theBanDuration in minutes
+#                    More code cleaned
+#
+#  Version 1.1beta - Stable release, working as intented
+#
+#  Version 1.0beta - First working release, code cleaned up
+#
 ###############################################################################
 
 
-bind pub o !troll doCodeBan
-bind pub o !code doCrackCode
+bind pub - !troll doCodeBan
+bind pub - !code  doCrackCode
 
 # Configuration
-#
 
-set gTimedBanMinDuration 30
-set gTimedBanMaxDuration 50
+set theBanDuration 15
+set gGetCodeMinDuration 30
+set gGetCodeMaxDuration 50
 set gCodePhrases "x7WRPJeK 58fG4P4A 3m4289uQ QPcj5QmJ 5u928AEB h5cfA68C CAbKJ9Mm 2GY6dc9y 2GY6dc9y 7msVjxcM 7xeAvSne 77u29R5N pJJr6a4S bWG7GnQQ 779ZyraS AR57qU4b 7D5zFXVF YUH2KQvq FZ462f5Dv R2c75Zpx eh9CtNUq 3Z85VgpQ sVyW2dtf gxJ2TyaW gzU4VGCn 5ttf7QjU 6j6Feb5Z 2TH57saY JdEHCD5b r65334Mf eTEVGR3B 7HmJJ4vZ 74d56S8R"
 set gMinCodeCount 2
 set gMaxCodeCount 5
 
 # Internal Globals
-#
 
-set gTheScriptVersion "1.1beta_8o8"
+set gTheScriptVersion "1.2beta 8o8"
 set gTimedBanActive 0
 set gTimerId 0
 set gTimedBanTarget ""
@@ -44,11 +51,12 @@ proc note {msg} {
 }
 
 proc IRC8o8Ban {theNick theChannel theReason} {
-set nickhost [lindex [split [getchanhost $theNick] "@"] 1]
+global theBanDuration banmask botnick
+set banmask "*![lindex [split [getchanhost $theNick] @] 0]@[lindex [split [getchanhost $theNick] @] 1]"
 note "Banning $theNick in $theChannel (Reason: $theReason)"
-putserv "MODE $theChannel +b *!*@$nickhost"
-putserv "KICK $theChannel $theNick :$theReason"
-putserv "PRIVMSG $theChannel :\001ACTION did gave $theNick a change.. Haha.\001"
+newchanban $theChannel $banmask $botnick $theReason $theBanDuration
+putquick "KICK $theChannel $theNick :$theReason"
+putserv "PRIVMSG $theChannel :\001ACTION did gave $theNick a change.. Banned: $theBanDuration minutes.\001"
 return 1
 
 }
@@ -109,7 +117,7 @@ proc CodeCracked {wireCut} {
 
 proc StartTimedBan {theStarter theNick theChannel} {
   global gTimedBanActive gTimedBanTarget gTimerId gTimedBanChannel gNumberNames gCorrectCode
-  global gMaxCodeCount gTimedBanMinDuration gTimedBanMaxDuration
+  global gMaxCodeCount gGetCodeMinDuration gGetCodeMaxDuration
   if { $gTimedBanActive == 1 } {
     note "Timed ban not started for $theStarter (Reason: timed ban already active)"
     if { $theChannel != $gTimedBanChannel } {
@@ -118,7 +126,7 @@ proc StartTimedBan {theStarter theNick theChannel} {
       IRCAction $theChannel "points at the ban on $gTimedBanTarget's ass."
     }
   } else {
-    set timerDuration [expr $gTimedBanMinDuration + [expr int(rand() * ($gTimedBanMaxDuration - $gTimedBanMinDuration))]]
+    set timerDuration [expr $gGetCodeMinDuration + [expr int(rand() * ($gGetCodeMaxDuration - $gGetCodeMinDuration))]]
     set gTimedBanTarget $theNick
     set gTimedBanChannel $theChannel
     set numberOfCodes [expr 1 + int(rand() * ( $gMaxCodeCount - 0 ))]
@@ -129,10 +137,10 @@ proc StartTimedBan {theStarter theNick theChannel} {
     IRCPrivMSG $theChannel "Well, $gTimedBanTarget, your number has come up. You are about to get banned, but..."
     if { $numberOfCodes == 1 } {
       IRCPrivMSG $theChannel "You get a change to undo this.. Get the right code in $timerDuration seconds."
-      IRCPrivMSG $theChannel "Use !code <codephrase> for picking the right codephrase. Lucky for you, the code phrase is $CodeListAsEnglish"
+      IRCPrivMSG $theChannel "Use !code <codephrase> for entering the codephrase. Lucky for you, the code phrase is $CodeListAsEnglish"
     } else {
       IRCPrivMSG $theChannel "You get a change to undo this.. Get the right code in $timerDuration seconds."
-      IRCPrivMSG $theChannel "Use !code <codephrase> for picking the right codephrase. Code phrase options are: $CodeListAsEnglish"
+      IRCPrivMSG $theChannel "Use !code <codephrase> for entering the right codephrase. Code phrase options are: $CodeListAsEnglish"
     }
     note "Timed ban started by $theStarter (Troll ban handed to $theNick, I will ban in $timerDuration seconds)"
     set gTimedBanActive 1
@@ -141,7 +149,6 @@ proc StartTimedBan {theStarter theNick theChannel} {
 }
 
 # Eggdrop command binds
-#
 
 proc doCrackCode {nick uhost hand channel arg} {
   global gTimedBanActive gCorrectCode gTimedBanTarget
@@ -200,8 +207,7 @@ return 1
 }
 
 # End of Script - ArNz|8o8
-#
 
 note "Timed Code ban $gTheScriptVersion by ArNz|8o8 loaded";
-note "with $gMaxCodeCount codes maximum,"
-note "and time range of $gTimedBanMinDuration to $gTimedBanMaxDuration seconds.";
+note "with $gMaxCodeCount codes maximum, ban is for $theBanDuration minutes."
+note "Time range of $gGetCodeMinDuration to $gGetCodeMaxDuration seconds.";
