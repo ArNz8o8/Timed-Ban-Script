@@ -3,7 +3,7 @@
 #
 #  To start the timed ban a user must type:
 #    !troll <nickname>
-#  Diffusing the bomb is done by typing:
+#  Selecting the code phrase is done by typing:
 #    !code <codephrase>
 #
 #  The codes you can choose from are displayed when the ban is activated.
@@ -12,6 +12,8 @@
 #
 #  (C) 2016 ArNz|8o8 - Based on timebomb.tcl by http://radiosaurus.sporkism.org
 #  Made for eggdrops 1.6.x and up
+#
+#  Version 1.3beta - Added Channel flag. For use .chanset #channel +troll
 #
 #  Version 1.2beta - Changed the banmask and added a ban duration
 #                    Ban duration is set at theBanDuration in minutes
