@@ -23,7 +23,7 @@
 #
 ###############################################################################
 
-
+setudef flag troll
 bind pub - !troll doCodeBan
 bind pub - !code  doCrackCode
 
