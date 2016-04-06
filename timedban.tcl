@@ -132,7 +132,7 @@ proc doTargetLeft {nickname hostname handle theChannel reason} {
   set gTimerId 0
   set gTimedBanActive 0
   note "Target $gTimedBanTarget left. Troll stopped"
-  IRCPrivMSG $theChannel "$gTimedBanTarget left.. When they come back we can do it again!"
+  IRCPrivMSG $theChannel "Ahw, $gTimedBanTarget left.. Let's troll again upon returning!"
   }
 }
 
