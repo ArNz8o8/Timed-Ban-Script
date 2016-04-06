@@ -1,4 +1,4 @@
-###############################################################################
+####################################################################################
 #  Timed ban with a change to escape it by guessing the right code phrase
 #
 #  To start the timed ban a user must type:
@@ -8,26 +8,39 @@
 #
 #  The codes you can choose from are displayed when the ban is activated.
 #  This script will not allow bots (Users who are +b), or the bot running the
-#  script, to be banned.
+#  script, or friends of the bot (+g flag needed) to be banned.
 #
 #  (C) 2016 ArNz|8o8 - Based on timebomb.tcl by http://radiosaurus.sporkism.org
-#  Made for eggdrops 1.6.x and up
+#  Made for eggdrop 1.6.x and up (Tested on CVS1.8.0/TCL8.6)
 #
-#  Version 1.3beta - Added Channel flag. For use .chanset #channel +troll
+#  Version 1.4 beta - Added a stop when someone parts the channel during a troll.
+#                     Thanks to Skxawng and Mio (from #fusion, Undernet) for
+#                     noticing this.
+#                     Fixed the chanflag so it acctually works (bah fast fixing)
 #
-#  Version 1.2beta - Changed the banmask and added a ban duration
-#                    Ban duration is set at theBanDuration in minutes
-#                    More code cleaned
+#  Version 1.3 beta - Added Channel flag. For use: .chanset #channel +troll
 #
-#  Version 1.1beta - Stable release, working as intented
+#  Version 1.2 beta - Changed the banmask and added a ban duration
+#                     Ban duration is set at theBanDuration in minutes
+#                     More code cleaned
 #
-#  Version 1.0beta - First working release, code cleaned up
+#  Version 1.1 beta - Stable release, working as intented
 #
-###############################################################################
+#  Version 1.0 beta - First working release, code cleaned up
+#
+####################################################################################
+
+# Set channel flag to troll
+# You must set +troll on your desired channel(s)
+#
 
 setudef flag troll
-bind pub - !troll doCodeBan
-bind pub - !code  doCrackCode
+
+# Binds
+
+bind pub  - !troll doCodeBan
+bind pub  - !code  doCrackCode
+bind part - *      doTargetLeft
 
 # Configuration
 
@@ -40,7 +53,7 @@ set gMaxCodeCount 5
 
 # Internal Globals
 
-set gTheScriptVersion "1.2beta 8o8"
+set gTheScriptVersion "1.4 beta - 8o8"
 set gTimedBanActive 0
 set gTimerId 0
 set gTimedBanTarget ""
@@ -58,7 +71,7 @@ set banmask "*![lindex [split [getchanhost $theNick] @] 0]@[lindex [split [getch
 note "Banning $theNick in $theChannel (Reason: $theReason)"
 newchanban $theChannel $banmask $botnick $theReason $theBanDuration
 putquick "KICK $theChannel $theNick :$theReason"
-putserv "PRIVMSG $theChannel :\001ACTION did gave $theNick a change.. Banned: $theBanDuration minutes.\001"
+putserv "PRIVMSG $theChannel :\001ACTION did gave $theNick a change.. $theBanDuration mins ban.\001"
 return 1
 
 }
@@ -107,6 +120,20 @@ proc ActivateTimedBan {destroyTimer kickMessage} {
   set gTimerId 0
   set gTimedBanActive 0
   IRC8o8Ban $gTimedBanTarget $gTimedBanChannel $kickMessage
+}
+
+proc doTargetLeft {nickname hostname handle theChannel reason} {
+  global gTimedBanTarget gTimerId gTimedBanChannel gTimedBanActive
+  if { $gTimedBanActive == 0 } {
+  # note "Someone left the Channel. No !troll was used"
+  return 0
+  } else {
+  killutimer $gTimerId
+  set gTimerId 0
+  set gTimedBanActive 0
+  note "Target $gTimedBanTarget left. Troll stopped"
+  IRCPrivMSG $theChannel "$gTimedBanTarget left.. When they come back we can do it again!"
+  }
 }
 
 proc CodeCracked {wireCut} {
@@ -160,7 +187,7 @@ proc doCrackCode {nick uhost hand channel arg} {
         if { [string tolower $arg] == [string tolower $gCorrectCode] } {
           CodeCracked $gCorrectCode
         } else {
-          IRCPrivMSG $channel "Wrong guess.."
+          IRCPrivMSG $channel "Ha!"
           ActivateTimedBan 1 "ahwww... BANNED!"
         }
       }
@@ -169,6 +196,7 @@ proc doCrackCode {nick uhost hand channel arg} {
 }
 
 proc doCodeBan {nick host handle channel testes} {
+if {[lsearch -exact [channel info $channel] +troll] != -1} {
 global botnick
 proc gethandle {nick} {
 set host [getchanhost $nick]
@@ -206,6 +234,7 @@ return 1
 set theNick $who
 StartTimedBan $nick $theNick $channel
 return 1
+}
 }
 
 # End of Script - ArNz|8o8
